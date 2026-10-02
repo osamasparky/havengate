@@ -47,9 +47,13 @@ return [
         'submit' => 'Check availability',
     ],
 
-    'book_bar' => [
-        'from' => 'Stays from',
-        'per_night' => '/ night',
+    'tabs' => [
+        'home' => 'Home',
+        'about' => 'About',
+        'book' => 'Book',
+        'account' => 'Account',
+        'more' => 'More',
+        'label' => 'Quick navigation',
     ],
 
     'home' => [

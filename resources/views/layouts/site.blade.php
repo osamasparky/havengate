@@ -18,9 +18,13 @@
         'contact' => __('site.nav.contact'),
     ];
     $whatsapp = preg_replace('/\D/', '', (string) setting('contact_whatsapp'));
-    // Mobile "Book" bar everywhere except the booking flow itself.
-    $showBookBar = ! request()->routeIs('book', 'booking.*', 'payments.*');
-    $fromPrice = $showBookBar ? rescue(fn () => \App\Models\Accommodation::active()->reorder()->min('base_price'), null, false) : null;
+    // App-style bottom tab bar (phones & tablets).
+    $tabs = [
+        ['route' => 'home', 'icon' => 'home', 'label' => __('site.tabs.home'), 'active' => request()->routeIs('home')],
+        ['route' => 'camp', 'icon' => 'info', 'label' => __('site.tabs.about'), 'active' => request()->routeIs('camp', 'location', 'gallery')],
+        ['route' => 'book', 'icon' => 'calendar', 'label' => __('site.tabs.book'), 'active' => request()->routeIs('book', 'booking.checkout', 'booking.status', 'payments.*'), 'primary' => true],
+        ['route' => 'booking.manage', 'icon' => 'user', 'label' => __('site.tabs.account'), 'active' => request()->routeIs('booking.manage*')],
+    ];
 @endphp
 <!DOCTYPE html>
 <html lang="{{ $locale }}" dir="{{ $dir }}" class="no-js">
@@ -65,16 +69,16 @@
     </script>
     @stack('head')
 </head>
-<body class="min-h-dvh">
+<body class="min-h-dvh pb-[calc(4.25rem+env(safe-area-inset-bottom))] [-webkit-tap-highlight-color:transparent] lg:pb-0">
 <a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:start-4 focus:top-4 focus:z-[100] btn btn-primary">{{ __('site.skip') }}</a>
 
 {{-- Header ----------------------------------------------------------------- --}}
-<header data-header x-data="{ menu: false, lang: false }"
+<header data-header x-data="{ menu: false, lang: false }" @open-menu.window="menu = true"
         class="group/header fixed inset-x-0 top-0 z-50 transition-[background-color,box-shadow,color] duration-300
                {{ $headerTheme === 'night'
                     ? 'text-sand-50 data-[scrolled]:bg-night-900/85 data-[scrolled]:backdrop-blur-md data-[scrolled]:shadow-[0_1px_0_rgb(184_135_90/.2)]'
                     : 'bg-sand-50/85 text-ink-900 backdrop-blur-md data-[scrolled]:shadow-[0_1px_0_rgb(29_26_22/.08)]' }}">
-    <div class="container-hg flex h-20 items-center justify-between gap-6">
+    <div class="container-hg flex h-16 items-center justify-between gap-6 lg:h-20">
         <a href="{{ lroute('home') }}" class="h-11 shrink-0" aria-label="{{ __('site.brand_full') }}">
             <x-logo class="h-11 text-[0.95rem]"/>
         </a>
@@ -105,30 +109,35 @@
             </div>
 
             <a href="{{ lroute('booking.manage') }}" class="hidden text-sm font-medium hover:text-copper-500 xl:inline">{{ __('site.nav.manage') }}</a>
-            <a href="{{ lroute('book') }}" class="btn btn-primary btn-sm hidden sm:inline-flex">{{ __('site.nav.book') }}</a>
-
-            <button type="button" class="grid size-10 place-items-center rounded-full lg:hidden" @click="menu = true" aria-label="{{ __('site.nav.menu') }}">
-                <x-icon name="menu" class="size-6"/>
-            </button>
+            <a href="{{ lroute('book') }}" class="btn btn-primary btn-sm hidden lg:inline-flex">{{ __('site.nav.book') }}</a>
         </div>
     </div>
 
-    {{-- Mobile menu --}}
-    <div x-show="menu" x-cloak x-transition.opacity class="fixed inset-0 z-50 bg-night-900 text-sand-50 lg:hidden" @keydown.escape.window="menu = false">
-        <div class="container-hg flex h-20 items-center justify-between">
+    {{-- Mobile menu ("More"): teleported to <body> so the header's backdrop-blur doesn't trap the fixed overlay. --}}
+    <template x-teleport="body">
+    <div x-show="menu" x-cloak x-transition.opacity class="fixed inset-0 z-[60] bg-night-900 text-sand-50 lg:hidden" @keydown.escape.window="menu = false">
+        <div class="container-hg flex h-16 items-center justify-between">
             <x-logo class="h-11 text-[0.95rem]"/>
             <button type="button" class="grid size-10 place-items-center" @click="menu = false" aria-label="{{ __('site.nav.close') }}"><x-icon name="x" class="size-6"/></button>
         </div>
-        <nav class="container-hg mt-8 flex flex-col gap-1">
+        <nav class="container-hg mt-4 flex flex-col gap-1 overflow-y-auto pb-32" style="max-height: calc(100dvh - 4rem)">
             @foreach ($nav + ['booking.manage' => __('site.nav.manage')] as $route => $label)
-                <a href="{{ lroute($route) }}" class="border-b border-night-700 py-4 font-display text-3xl">{{ $label }}</a>
+                <a href="{{ lroute($route) }}" @class(['flex items-center justify-between border-b border-night-700 py-4 font-display text-3xl', 'text-copper-300' => request()->routeIs($route) || request()->routeIs(str_replace('.index', '.*', $route))])>
+                    {{ $label }} <x-icon name="chevron" class="size-5 text-sand-200/40 rtl:-scale-x-100"/>
+                </a>
             @endforeach
+            <div class="mt-8 flex flex-wrap gap-2">
+                @foreach (config('heavengate.locales') as $code => $l)
+                    <a href="{{ switch_locale_url($code) }}" hreflang="{{ $code }}" lang="{{ $code }}" @class(['chip !px-4 !py-2', '!bg-copper-500 !text-night-900 !border-copper-500' => $code === $locale])>{{ $l['native'] }}</a>
+                @endforeach
+            </div>
             <a href="{{ lroute('book') }}" class="btn btn-primary mt-8">{{ __('site.nav.book') }}</a>
         </nav>
     </div>
+    </template>
 </header>
 
-<main id="main" @class(['pt-20' => $headerTheme !== 'night'])>
+<main id="main" @class(['pt-16 lg:pt-20' => $headerTheme !== 'night'])>
     @if (session('status'))
         <div class="container-hg pt-6"><div class="panel flex items-start gap-3 border-sage-600/30 bg-sage-600/5 p-4 text-sage-600" role="status"><x-icon name="check" class="mt-0.5 size-5 shrink-0"/> {{ session('status') }}</div></div>
     @endif
@@ -193,23 +202,36 @@
     <p aria-hidden="true" class="pointer-events-none mt-16 select-none text-center font-display text-[18vw] leading-[0.8] text-sand-50/[0.04]">Heaven Gate</p>
 </footer>
 
-@if ($showBookBar)
-    {{-- Mobile booking bar: slides up once the visitor scrolls past the first screen. --}}
-    <div x-data="{ shown: false }" x-init="const f = () => shown = window.scrollY > window.innerHeight * 0.6; f(); window.addEventListener('scroll', f, { passive: true })"
-         :class="{ 'translate-y-full': ! shown }"
-         class="fixed inset-x-0 bottom-0 z-40 translate-y-full border-t border-night-700 bg-night-900/95 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] text-sand-50 backdrop-blur-md transition-transform duration-300 md:hidden">
-        <div class="flex items-center justify-between gap-4">
-            <div class="min-w-0">
-                @if ($fromPrice)<p class="text-xs text-sand-200/70">{{ __('site.book_bar.from') }}</p><p class="truncate font-display text-xl leading-tight">{{ money($fromPrice) }} <span class="font-sans text-xs text-sand-200/70">{{ __('site.book_bar.per_night') }}</span></p>
-                @else<p class="font-display text-lg">{{ __('site.brand_full') }}</p>@endif
-            </div>
-            <a href="{{ lroute('book') }}" class="btn btn-primary btn-sm shrink-0">{{ __('site.nav.book') }} <x-icon name="arrow" class="size-4 rtl:-scale-x-100"/></a>
-        </div>
-    </div>
-@endif
+{{-- App-style bottom tab bar (below lg). --}}
+<nav aria-label="{{ __('site.tabs.label') }}" x-data
+     class="fixed inset-x-0 bottom-0 z-40 border-t border-night-700/80 bg-night-900/95 text-sand-200/70 backdrop-blur-xl lg:hidden"
+     style="padding-bottom: env(safe-area-inset-bottom)">
+    <ul class="mx-auto grid h-[4.25rem] max-w-lg grid-cols-5 items-stretch px-1">
+        @foreach (array_slice($tabs, 0, 2) as $tab)
+            <li>@include('partials.tab', ['tab' => $tab])</li>
+        @endforeach
+        @php $book = $tabs[2]; @endphp
+        <li class="relative flex justify-center">
+            <a href="{{ lroute($book['route']) }}" @if ($book['active']) aria-current="page" @endif
+               class="group absolute -top-5 flex flex-col items-center gap-1 text-[0.68rem] font-semibold {{ $book['active'] ? 'text-copper-300' : 'text-sand-100' }}">
+                <span class="grid size-14 place-items-center rounded-full bg-copper-500 text-night-900 shadow-[0_10px_30px_-6px_rgb(184_135_90/.7)] ring-4 ring-night-900 transition group-active:scale-90">
+                    <x-icon :name="$book['icon']" class="size-6"/>
+                </span>
+                {{ $book['label'] }}
+            </a>
+        </li>
+        <li>@include('partials.tab', ['tab' => $tabs[3]])</li>
+        <li>
+            <button type="button" @click="$dispatch('open-menu')" class="group flex size-full flex-col items-center justify-center gap-1 text-[0.68rem] font-medium transition active:scale-90">
+                <x-icon name="menu" class="size-[1.35rem]"/>
+                {{ __('site.tabs.more') }}
+            </button>
+        </li>
+    </ul>
+</nav>
 
 @if ($whatsapp)
-    <a href="https://wa.me/{{ $whatsapp }}" target="_blank" rel="noopener" class="fixed {{ $showBookBar ? 'bottom-24' : 'bottom-5' }} end-5 z-40 md:bottom-5 grid size-14 place-items-center rounded-full bg-night-900 text-copper-300 shadow-[var(--shadow-lift)] ring-1 ring-copper-300/30 transition hover:scale-105" aria-label="{{ __('site.contact.whatsapp') }}">
+    <a href="https://wa.me/{{ $whatsapp }}" target="_blank" rel="noopener" class="fixed bottom-[calc(5.5rem+env(safe-area-inset-bottom))] end-4 z-40 lg:bottom-5 lg:end-5 grid size-14 place-items-center rounded-full bg-night-900 text-copper-300 shadow-[var(--shadow-lift)] ring-1 ring-copper-300/30 transition hover:scale-105" aria-label="{{ __('site.contact.whatsapp') }}">
         <x-icon name="whatsapp" class="size-6"/>
     </a>
 @endif

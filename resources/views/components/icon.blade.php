@@ -30,6 +30,7 @@
         'arrow' => '<path d="M5 12h14M13 6l6 6-6 6"/>',
         'chevron' => '<path d="M9 6l6 6-6 6"/>',
         'chevron-down' => '<path d="M6 9l6 6 6-6"/>',
+        'user' => '<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
         'play' => '<path d="M8 5.5v13l10.5-6.5z"/>',
         'pause' => '<path d="M9 5v14M15 5v14"/>',
         'check' => '<path d="M5 12.5l4.5 4.5L19 7.5"/>',
