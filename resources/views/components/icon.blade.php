@@ -1,0 +1,60 @@
+@props(['name' => 'star', 'class' => 'size-5'])
+@php
+    // Thin-line icon set (1.5px) matching the logo's line weight.
+    $paths = [
+        'star' => '<path d="M12 3l1.8 6.2L20 12l-6.2 1.8L12 21l-1.8-7.2L4 12l6.2-2.8z"/>',
+        'waves' => '<path d="M2 9c2 0 2-1.5 4-1.5S8 9 10 9s2-1.5 4-1.5S16 9 18 9s2-1.5 4-1.5M2 14c2 0 2-1.5 4-1.5S8 14 10 14s2-1.5 4-1.5 2 1.5 4 1.5 2-1.5 4-1.5M2 19c2 0 2-1.5 4-1.5S8 19 10 19s2-1.5 4-1.5 2 1.5 4 1.5 2-1.5 4-1.5"/>',
+        'utensils' => '<path d="M7 3v8m-3-8v5a3 3 0 0 0 6 0V3M7 11v10M17 3c-2 0-3 3-3 6s1 4 3 4v8"/>',
+        'coffee' => '<path d="M4 9h13v5a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5zM17 10h1.5a2.5 2.5 0 0 1 0 5H17M8 3v3M12 3v3"/>',
+        'wifi' => '<path d="M2 9a15 15 0 0 1 20 0M5 12.5a10 10 0 0 1 14 0M8.5 16a5 5 0 0 1 7 0"/><circle cx="12" cy="19.5" r=".8" fill="currentColor"/>',
+        'flame' => '<path d="M12 21a6 6 0 0 0 6-6c0-4-3-6-4-10-2 2-3 4-3 6-1-1-2-2-2-3-2 2-3 4-3 7a6 6 0 0 0 6 6z"/>',
+        'sun' => '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+        'dice' => '<rect x="4" y="4" width="16" height="16" rx="3"/><circle cx="9" cy="9" r=".9" fill="currentColor"/><circle cx="15" cy="15" r=".9" fill="currentColor"/><circle cx="15" cy="9" r=".9" fill="currentColor"/><circle cx="9" cy="15" r=".9" fill="currentColor"/>',
+        'car' => '<path d="M5 16V11l2-5h10l2 5v5M3 16h18v3h-3v-1H6v1H3zM5 11h14"/><circle cx="7.5" cy="13.5" r=".8" fill="currentColor"/><circle cx="16.5" cy="13.5" r=".8" fill="currentColor"/>',
+        'plane' => '<path d="M10.5 20l1.5-6-6 1.5-2-1.5 7.5-4.5L10 4l1.5-1 4 6 4.5-1.5a1.5 1.5 0 0 1 1 2.8L16.5 12l1 6.5-1 1-3.5-5z"/>',
+        'paw' => '<circle cx="7" cy="10" r="1.6"/><circle cx="11" cy="6.5" r="1.6"/><circle cx="15.5" cy="7" r="1.6"/><circle cx="18" cy="11" r="1.6"/><path d="M8 17c0-3 2-5 4-5s4 2 4 5c0 2-2 2.5-4 2.5S8 19 8 17z"/>',
+        'bell' => '<path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15zM10 20a2 2 0 0 0 4 0"/>',
+        'mask' => '<path d="M3 9a3 3 0 0 1 3-3h12a3 3 0 0 1 3 3v3a3 3 0 0 1-3 3h-2.5l-2-2h-3l-2 2H6a3 3 0 0 1-3-3zM21 10h1v8a3 3 0 0 1-3 3h-2"/>',
+        'mountain' => '<path d="M2 20l7-11 4 6 3-4 6 9z"/><path d="M8 11.5l1 .5 1.2-1"/>',
+        'moon' => '<path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/>',
+        'users' => '<circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6M16 4.5a3 3 0 0 1 0 6M18 14c2 .8 3 3 3 6"/>',
+        'bed' => '<path d="M3 18V6M3 13h18v5M21 18v-3a4 4 0 0 0-4-4h-6v2"/><circle cx="7" cy="10.5" r="1.8"/>',
+        'ruler' => '<path d="M3 17L17 3l4 4L7 21zM7 13l2 2M10 10l2 2M13 7l2 2"/>',
+        'calendar' => '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
+        'clock' => '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+        'pin' => '<path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/>',
+        'phone' => '<path d="M5 3h3.5l2 5-2.5 1.5a11 11 0 0 0 6.5 6.5L16 13.5l5 2V19a2 2 0 0 1-2 2A16 16 0 0 1 3 5a2 2 0 0 1 2-2z"/>',
+        'mail' => '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/>',
+        'whatsapp' => '<path d="M4 20l1.3-4A8 8 0 1 1 8 19.2z"/><path d="M9 9c0 3 3 6 6 6l1.2-1.4-2-1-1 .8a4 4 0 0 1-2.6-2.6l.8-1-1-2z"/>',
+        'instagram' => '<rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.3" cy="6.7" r=".9" fill="currentColor"/>',
+        'arrow' => '<path d="M5 12h14M13 6l6 6-6 6"/>',
+        'chevron' => '<path d="M9 6l6 6-6 6"/>',
+        'chevron-down' => '<path d="M6 9l6 6 6-6"/>',
+        'play' => '<path d="M8 5.5v13l10.5-6.5z"/>',
+        'pause' => '<path d="M9 5v14M15 5v14"/>',
+        'check' => '<path d="M5 12.5l4.5 4.5L19 7.5"/>',
+        'x' => '<path d="M6 6l12 12M18 6L6 18"/>',
+        'menu' => '<path d="M4 8h16M4 16h16"/>',
+        'globe' => '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.5 3.8 5.5 3.8 9S14.5 18.5 12 21c-2.5-2.5-3.8-5.5-3.8-9S9.5 5.5 12 3z"/>',
+        'lock' => '<rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/>',
+        'shield' => '<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/>',
+        'minus' => '<path d="M5 12h14"/>',
+        'plus' => '<path d="M12 5v14M5 12h14"/>',
+        'tag' => '<path d="M3 12V4h8l10 10-8 8z"/><circle cx="7.5" cy="8.5" r="1.3"/>',
+        'download' => '<path d="M12 4v11M7 10l5 5 5-5M4 20h16"/>',
+        'info' => '<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>',
+        'fan' => '<circle cx="12" cy="12" r="1.5"/><path d="M12 10.5C11 6 13 3 16 4s1 5-4 6.5zM13.5 12c4.5-1 7.5 1 6.5 4s-5 1-6.5-4zM12 13.5c1 4.5-1 7.5-4 6.5s-1-5 4-6.5zM10.5 12C6 13 3 11 4 8s5-1 6.5 4z"/>',
+        'snowflake' => '<path d="M12 2v20M4.5 6.5l15 11M19.5 6.5l-15 11M9 4l3 2 3-2M9 20l3-2 3 2"/>',
+        'door' => '<path d="M5 21V4a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v17M3 21h18"/><circle cx="15" cy="12" r=".9" fill="currentColor"/>',
+        'towel' => '<path d="M6 3h12v14a4 4 0 0 1-4 4H6zM6 7h12"/>',
+        'shower' => '<path d="M4 20V8a5 5 0 0 1 10 0M10 8h8M11 12v1M14 12v1M17 12v1M12.5 15v1M15.5 15v1"/>',
+        'home' => '<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
+    ];
+    $featureIcons = [
+        'sea_view' => 'waves', 'ac' => 'snowflake', 'fan' => 'fan', 'private_bathroom' => 'shower', 'shared_bathroom' => 'shower',
+        'terrace' => 'sun', 'wifi' => 'wifi', 'towels' => 'towel', 'family' => 'users', 'beachfront' => 'waves',
+    ];
+    $key = $paths[$name] ?? null ? $name : ($featureIcons[$name] ?? 'star');
+    $flip = in_array($key, ['arrow', 'chevron'], true);
+@endphp
+<svg {{ $attributes->merge(['class' => $class.($flip ? ' rtl:-scale-x-100' : '')]) }} viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">{!! $paths[$key] !!}</svg>
