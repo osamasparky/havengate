@@ -49,10 +49,14 @@ class ContentBlockResource extends Resource
             Forms\Components\TextInput::make('cta_url')->label(__('Button link'))->helperText(__('Site path like /contact (language is added automatically) or a full URL.')),
             Forms\Components\FileUpload::make('image')->image()->imageEditor()->directory('content')
                 ->label(fn (?ContentBlock $record) => $record?->key === 'home.story' ? __('Main image (large arch, right)') : __('Image'))
-                ->columnSpan(fn (?ContentBlock $record) => $record?->key === 'home.story' ? 1 : 'full'),
-            // The story section shows two arched frames side by side.
-            Forms\Components\FileUpload::make('image_2')->label(__('Second image (small arch, left)'))->image()->imageEditor()->directory('content')
-                ->visible(fn (?ContentBlock $record) => $record?->key === 'home.story'),
+                ->columnSpan(fn (?ContentBlock $record) => $record?->key === 'home.story' ? 1 : 'full')
+                ->helperText(fn (?ContentBlock $record) => $record?->key === 'home.hero'
+                    ? __('Without a video, this image is the hero background. With a video, it is shown while the video loads.') : null),
+            // Second frame: the story's small arch, or the hero's "gate" arch (desktop only).
+            Forms\Components\FileUpload::make('image_2')->image()->imageEditor()->directory('content')
+                ->label(fn (?ContentBlock $record) => $record?->key === 'home.hero' ? __('Gate image (arch on the right)') : __('Second image (small arch, left)'))
+                ->helperText(fn (?ContentBlock $record) => $record?->key === 'home.hero' ? __('Shown inside the arch beside the title on large screens. Leave empty for a see-through arch.') : null)
+                ->visible(fn (?ContentBlock $record) => in_array($record?->key, ['home.story', 'home.hero'], true)),
             // Only the home hero plays a video.
             Forms\Components\FileUpload::make('video')->label(__('Background video'))->directory('content/video')
                 ->acceptedFileTypes(['video/mp4', 'video/webm'])->maxSize(40 * 1024)->columnSpanFull()

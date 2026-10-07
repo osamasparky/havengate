@@ -13,9 +13,12 @@
 @section('content')
 {{-- 1 · HERO — night video, the gate opens ---------------------------------- --}}
 @php
-    // Admin upload (Page sections → home.hero → video) wins; otherwise the bundled night loop.
-    $heroVideo = media_url($hero?->video) ?? (is_file(public_path('videos/hero.mp4')) ? asset('videos/hero.mp4') : null);
-    $heroPoster = $hero?->video && $hero?->image ? media_url($hero->image) : (is_file(public_path('videos/hero-poster.jpg')) ? asset('videos/hero-poster.jpg') : (media_url($hero?->image) ?? asset('images/scenes/milky-way.svg')));
+    // Page sections → home.hero: an uploaded video wins (the image is its poster); an uploaded image alone
+    // is a still background; with neither, the bundled night loop plays.
+    $bundledVideo = is_file(public_path('videos/hero.mp4')) ? asset('videos/hero.mp4') : null;
+    $bundledPoster = is_file(public_path('videos/hero-poster.jpg')) ? asset('videos/hero-poster.jpg') : asset('images/scenes/milky-way.svg');
+    $heroVideo = media_url($hero?->video) ?? ($hero?->image ? null : $bundledVideo);
+    $heroPoster = media_url($hero?->image) ?? $bundledPoster;
 @endphp
 <section class="night on-night grain relative isolate z-10 flex min-h-[100svh] flex-col overflow-x-clip pt-28 pb-8 lg:pt-36" data-hero>
     {{-- Background: poster paints instantly, the video fades in once it actually plays. --}}
@@ -57,9 +60,13 @@
             </ul>
         </div>
 
-        {{-- The gate: an open arch you look through to the night beyond. --}}
+        {{-- The gate: an open arch you look through to the night beyond — or to the "Gate image" (Page sections → home.hero). --}}
         <div class="relative mx-auto hidden w-full max-w-[420px] lg:block" aria-hidden="true">
             <div data-gate class="arch relative aspect-[4/5] overflow-hidden border border-copper-300/45 bg-white/[0.03] shadow-[inset_0_0_80px_rgb(184_135_90/.12)] backdrop-blur-[1.5px]">
+                @if ($gateImage = media_url($hero?->image_2))
+                    {{-- Taller than the frame so the scroll parallax (app.js) never shows an edge. --}}
+                    <img src="{{ $gateImage }}" alt="" fetchpriority="high" class="absolute inset-x-0 -top-[10%] h-[120%] w-full object-cover">
+                @endif
                 <div class="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-night-950/50 to-transparent"></div>
             </div>
             <p class="mt-5 text-end font-display text-xl italic text-copper-300/85">{{ __('site.home.hero_whisper') }}</p>
