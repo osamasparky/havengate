@@ -18,6 +18,9 @@
                     <p class="eyebrow reveal">0{{ $i + 1 }}</p>
                     <h2 class="t-h2 mt-4 reveal">{{ $stay->name }}</h2>
                     <p class="mt-3 font-display text-xl italic text-copper-600 reveal">{{ $stay->tagline }}</p>
+                    @if ($stay->rating()['count'] > 0 && setting('reviews_enabled', true))
+                        <a href="{{ lroute('stays.show', ['accommodation' => $stay->slug]) }}#reviews" class="mt-3 inline-block hover:text-copper-600 reveal"><x-rating-badge :rating="$stay->rating()"/></a>
+                    @endif
                     <p class="lede mt-6 reveal">{{ \Illuminate\Support\Str::limit(strtok((string) $stay->description, "\n"), 260) }}</p>
                     <dl class="mt-8 grid grid-cols-3 gap-4 border-y border-sand-200 py-6 text-sm reveal">
                         <div><dt class="text-ink-400">{{ __('site.stays.capacity') }}</dt><dd class="mt-1 font-semibold">{{ __('site.up_to_guests', ['n' => $stay->max_guests]) }}</dd></div>

@@ -53,6 +53,11 @@ class SettingsSeeder extends Seeder
             'free_cancellation_days' => 7,
             'late_cancellation_days' => 2,
             'late_cancellation_refund_percent' => 50,
+
+            // Reviews
+            'reviews_enabled' => true,
+            'reviews_require_booking' => true,   // only guests with a confirmed reservation
+            'reviews_auto_approve' => false,     // staff approve each review first
         ]);
     }
 }

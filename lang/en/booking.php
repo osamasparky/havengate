@@ -191,4 +191,11 @@ return [
         'not_cancellable' => 'This booking can no longer be cancelled online.',
         'too_many' => 'Too many attempts. Please wait a few minutes.',
     ],
+    'pdf' => [
+        'status' => 'Reservation status',
+        'payment_status' => 'Payment status',
+        'hold_until' => 'Held until',
+        'cancelled_on' => 'Cancelled on',
+        'issued' => 'Issued',
+    ],
 ];

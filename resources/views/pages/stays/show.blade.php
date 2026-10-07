@@ -4,6 +4,7 @@
 
 @php
     $gallery = collect([$stay->coverUrl()])->merge($stay->photos->map->url())->unique()->values();
+    $thumbs = $gallery->slice(1)->values(); // everything after the cover
 @endphp
 
 @section('content')
@@ -14,6 +15,7 @@
             <div>
                 <h1 class="t-h1 reveal">{{ $stay->name }}</h1>
                 <p class="mt-4 font-display text-2xl italic text-copper-600 reveal">{{ $stay->tagline }}</p>
+                @include('partials.rating-link')
             </div>
             <ul class="flex flex-wrap gap-2 lg:justify-end reveal">
                 <li class="chip"><x-icon name="users" class="size-3.5"/> {{ __('site.up_to_guests', ['n' => $stay->max_guests]) }}</li>
@@ -22,26 +24,87 @@
             </ul>
         </div>
 
-        {{-- Gallery: arch lead + supporting frames --}}
-        <div class="mt-10 grid gap-4 md:grid-cols-[1.2fr_1fr]" x-data="{ i: 0, imgs: @js($gallery) }">
-            <div class="arch relative aspect-[4/5] bg-sand-200 md:aspect-auto md:h-[640px]">
-                <template x-for="(src, k) in imgs" :key="k">
-                    <img :src="src" alt="{{ $stay->name }}" x-show="i === k" x-transition.opacity.duration.500ms class="absolute inset-0 size-full object-cover">
-                </template>
-            </div>
-            <div class="grid grid-cols-2 gap-4 md:grid-rows-2">
-                @foreach ($gallery->slice(1)->take(4)->values() as $k => $src)
-                    <button type="button" @click="i = {{ $k + 1 }}" class="relative overflow-hidden rounded-[var(--radius-md)] bg-sand-200" :class="i === {{ $k + 1 }} && 'ring-2 ring-copper-500'">
-                        <img src="{{ $src }}" alt="" loading="lazy" class="size-full object-cover">
-                    </button>
+        {{-- Gallery: arch lead + supporting frames, paged 4 at a time (swipe, arrows or dots). --}}
+        @php $thumbPages = $thumbs->chunk(4); @endphp
+        <div class="mt-10 grid gap-4 md:grid-cols-[1.2fr_1fr]"
+             x-data="{
+                i: 0, n: {{ $gallery->count() }}, page: 0, pages: {{ max(1, $thumbPages->count()) }},
+                show(k) { this.i = (k + this.n) % this.n; if (this.i > 0) this.go(Math.floor((this.i - 1) / 4)); },
+                go(p) {
+                    this.page = Math.max(0, Math.min(this.pages - 1, p));
+                    const t = this.$refs.track; if (! t) return;
+                    const dir = getComputedStyle(t).direction === 'rtl' ? -1 : 1;
+                    t.scrollTo({ left: dir * this.page * t.clientWidth, behavior: 'smooth' });
+                },
+                sync() { const t = this.$refs.track; this.page = Math.round(Math.abs(t.scrollLeft) / t.clientWidth); },
+             }"
+             @keydown.arrow-right="show(i + (document.dir === 'rtl' ? -1 : 1))" @keydown.arrow-left="show(i + (document.dir === 'rtl' ? 1 : -1))">
+            <div class="arch group/main relative aspect-[4/5] overflow-hidden bg-sand-200 md:aspect-auto md:h-[640px]">
+                @foreach ($gallery as $k => $src)
+                    <img src="{{ $src }}" alt="{{ $stay->name }}" @if ($k > 0) loading="lazy" @endif
+                         x-show="i === {{ $k }}" @if ($k > 0) x-cloak @endif x-transition.opacity.duration.500ms class="absolute inset-0 size-full object-cover">
                 @endforeach
-                @if ($gallery->count() < 2)
-                    <div class="col-span-2 row-span-2 rounded-[var(--radius-md)] bg-night-900 p-8 text-sand-50 on-night">
-                        <x-logo mark class="h-16"/>
-                        <p class="mt-6 font-display text-2xl">{{ $stay->tagline }}</p>
+                @if ($gallery->count() > 1)
+                    <div class="absolute inset-x-0 bottom-5 flex items-center justify-center gap-3">
+                        <button type="button" @click="show(i - 1)" class="grid size-10 place-items-center rounded-full bg-night-900/60 text-sand-50 backdrop-blur transition hover:bg-night-900/85" aria-label="{{ __('site.gallery.prev') }}">
+                            <x-icon name="chevron" class="size-5 rotate-180"/>
+                        </button>
+                        <span class="min-w-16 rounded-full bg-night-900/60 px-3 py-1.5 text-center text-xs font-semibold tabular-nums text-sand-50 backdrop-blur" aria-live="polite">
+                            <span x-text="i + 1">1</span> / {{ $gallery->count() }}
+                        </span>
+                        <button type="button" @click="show(i + 1)" class="grid size-10 place-items-center rounded-full bg-night-900/60 text-sand-50 backdrop-blur transition hover:bg-night-900/85" aria-label="{{ __('site.gallery.next') }}">
+                            <x-icon name="chevron" class="size-5"/>
+                        </button>
                     </div>
                 @endif
             </div>
+
+            @if ($thumbs->isEmpty())
+                <div class="rounded-[var(--radius-md)] bg-night-900 p-8 text-sand-50 on-night md:h-[640px]">
+                    <x-logo mark class="h-16"/>
+                    <p class="mt-6 font-display text-2xl">{{ $stay->tagline }}</p>
+                </div>
+            @else
+                <div class="flex min-w-0 flex-col gap-3 md:h-[640px]">
+                    <div x-ref="track" @scroll.debounce.120ms="sync()"
+                         class="flex min-h-0 flex-1 snap-x snap-mandatory overflow-x-auto overscroll-x-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                        @foreach ($thumbPages as $p => $chunk)
+                            <div class="grid aspect-square w-full shrink-0 snap-start snap-always grid-cols-2 grid-rows-2 gap-4 md:aspect-auto md:h-full"
+                                 role="group" aria-label="{{ ($p * 4 + 1).'–'.min(($p + 1) * 4, $thumbs->count()).' / '.$thumbs->count() }}">
+                                @foreach ($chunk as $k => $src)
+                                    {{-- $k is the thumb index; main-image index is $k + 1 (0 is the cover). --}}
+                                    <button type="button" @click="show({{ $k + 1 }})"
+                                            class="relative overflow-hidden rounded-[var(--radius-md)] bg-sand-200 outline-offset-2"
+                                            :class="i === {{ $k + 1 }} ? 'ring-2 ring-copper-500 ring-offset-2 ring-offset-sand-50' : 'opacity-90 hover:opacity-100'"
+                                            aria-label="{{ __('site.gallery.photo', ['n' => $k + 2]) }}">
+                                        <img src="{{ $src }}" alt="" loading="lazy" class="absolute inset-0 size-full object-cover">
+                                    </button>
+                                @endforeach
+                            </div>
+                        @endforeach
+                    </div>
+
+                    @if ($thumbPages->count() > 1)
+                        <div class="flex items-center justify-between gap-4">
+                            <button type="button" @click="go(page - 1)" :disabled="page === 0"
+                                    class="grid size-10 place-items-center rounded-full border border-sand-300 transition hover:border-copper-500 hover:text-copper-600 disabled:pointer-events-none disabled:opacity-35" aria-label="{{ __('site.gallery.prev') }}">
+                                <x-icon name="chevron" class="size-5 rotate-180"/>
+                            </button>
+                            <div class="flex items-center gap-2">
+                                @foreach ($thumbPages as $p => $chunk)
+                                    <button type="button" @click="go({{ $p }})" class="h-2 rounded-full transition-all"
+                                            :class="page === {{ $p }} ? 'w-6 bg-copper-500' : 'w-2 bg-sand-300 hover:bg-copper-300'"
+                                            aria-label="{{ __('site.gallery.page', ['n' => $p + 1, 'total' => $thumbPages->count()]) }}" :aria-current="page === {{ $p }}"></button>
+                                @endforeach
+                            </div>
+                            <button type="button" @click="go(page + 1)" :disabled="page === pages - 1"
+                                    class="grid size-10 place-items-center rounded-full border border-sand-300 transition hover:border-copper-500 hover:text-copper-600 disabled:pointer-events-none disabled:opacity-35" aria-label="{{ __('site.gallery.next') }}">
+                                <x-icon name="chevron" class="size-5"/>
+                            </button>
+                        </div>
+                    @endif
+                </div>
+            @endif
         </div>
     </div>
 </section>
@@ -102,6 +165,8 @@
         </aside>
     </div>
 </section>
+
+@include('partials.reviews-section')
 
 @if ($others->isNotEmpty())
 <section class="bg-sand-100 py-24">

@@ -30,6 +30,9 @@ class Settings extends Page implements HasForms
 
     private const TRANSLATABLE = ['address', 'offline_payment_instructions'];
 
+    /** Values for keys added after the initial seed (match the setting() fallbacks in code). */
+    public const DEFAULTS = ['reviews_enabled' => true, 'reviews_require_booking' => true, 'reviews_auto_approve' => false];
+
     public static function canAccess(): bool
     {
         return auth()->user()?->canManage() ?? false;
@@ -37,7 +40,7 @@ class Settings extends Page implements HasForms
 
     public function mount(): void
     {
-        $all = Setting::all_cached();
+        $all = Setting::all_cached() + self::DEFAULTS;
         foreach (self::TRANSLATABLE as $k) {
             foreach (array_keys(config('heavengate.locales')) as $l) {
                 $all["{$k}_{$l}"] = $all[$k][$l] ?? null;
@@ -93,6 +96,17 @@ class Settings extends Page implements HasForms
                     Forms\Components\TextInput::make('late_cancellation_refund_percent')->numeric()->suffix('%'),
                     Forms\Components\Placeholder::make('note')->content(__('Remember to update the wording in Content → Pages → Cancellation policy.')),
                 ])->columns(2),
+
+                Forms\Components\Tabs\Tab::make(__('Reviews'))->icon('heroicon-o-star')->schema([
+                    Forms\Components\Toggle::make('reviews_enabled')->label(__('Accept guest reviews'))
+                        ->helperText(__('Shows the reviews page and the review form on the website.'))->live(),
+                    Forms\Components\Toggle::make('reviews_require_booking')->label(__('Only guests with a confirmed reservation can write a review'))
+                        ->helperText(__('Guests must enter their booking reference and email. Confirmed, checked-in and completed stays qualify; one review per reservation.'))
+                        ->visible(fn (Forms\Get $get) => (bool) $get('reviews_enabled')),
+                    Forms\Components\Toggle::make('reviews_auto_approve')->label(__('Publish reviews without approval'))
+                        ->helperText(__('Off = every review waits in Reservations → Reviews until staff approve it.'))
+                        ->visible(fn (Forms\Get $get) => (bool) $get('reviews_enabled')),
+                ])->columns(1),
             ])->persistTabInQueryString(),
         ]);
     }

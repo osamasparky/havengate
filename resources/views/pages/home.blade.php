@@ -90,8 +90,9 @@
 <section id="story" class="scroll-mt-20 py-24 md:py-36">
     <div class="container-hg grid items-center gap-16 lg:grid-cols-2">
         <div class="relative order-2 grid grid-cols-2 items-end gap-5 lg:order-1">
-            <div class="arch reveal aspect-[3/4] bg-sand-200"><img src="{{ asset('images/scenes/sunset-gulf.svg') }}" alt="" loading="lazy" class="size-full object-cover"></div>
-            <div class="arch reveal mb-16 aspect-[3/5] bg-sand-200"><img src="{{ asset('images/scenes/reed-hut.svg') }}" alt="" loading="lazy" class="size-full object-cover"></div>
+            {{-- Page sections → home.story: "Second image" (small, start side) and "Main image" (large). Scenes are the fallback. --}}
+            <div class="arch reveal aspect-[3/4] overflow-hidden bg-sand-200"><img src="{{ media_url($story?->image_2) ?? asset('images/scenes/sunset-gulf.svg') }}" alt="" loading="lazy" class="size-full object-cover"></div>
+            <div class="arch reveal mb-16 aspect-[3/5] overflow-hidden bg-sand-200"><img src="{{ media_url($story?->image) ?? asset('images/scenes/reed-hut.svg') }}" alt="" loading="lazy" class="size-full object-cover"></div>
             <span class="absolute -top-6 start-1/2 -translate-x-1/2 text-2xl text-copper-500" data-twinkle>✦</span>
         </div>
         <div class="order-1 lg:order-2">
@@ -197,20 +198,99 @@
             <x-section-head :eyebrow="__('site.home.gallery_eyebrow')" :title="__('site.home.gallery_title')"/>
             <a href="{{ setting('instagram') }}" target="_blank" rel="noopener" class="btn btn-secondary reveal"><x-icon name="instagram" class="size-4"/> {{ __('site.home.gallery_cta') }}</a>
         </div>
-        <div class="mt-14 grid auto-rows-[180px] grid-cols-2 gap-4 md:auto-rows-[220px] md:grid-cols-4">
-            @foreach ($photos as $i => $photo)
+        {{-- Phones: pages of 3 — arch lead on the start side, two stacked beside it. Swipe, arrows or dots. --}}
+        @php $photoPages = $photos->chunk(3); @endphp
+        <div class="mt-10 md:hidden" x-data="{
+                page: 0, pages: {{ $photoPages->count() }},
+                go(p) {
+                    this.page = Math.max(0, Math.min(this.pages - 1, p));
+                    const t = this.$refs.track, dir = getComputedStyle(t).direction === 'rtl' ? -1 : 1;
+                    t.scrollTo({ left: dir * this.page * t.clientWidth, behavior: 'smooth' });
+                },
+                sync() { const t = this.$refs.track; this.page = Math.round(Math.abs(t.scrollLeft) / t.clientWidth); },
+             }">
+            <div x-ref="track" @scroll.debounce.120ms="sync()"
+                 class="flex snap-x snap-mandatory overflow-x-auto overscroll-x-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                @foreach ($photoPages as $p => $chunk)
+                    <div class="grid aspect-[10/11] w-full shrink-0 snap-start snap-always grid-cols-[1.15fr_1fr] grid-rows-2 gap-3"
+                         role="group" aria-label="{{ __('site.gallery.page', ['n' => $p + 1, 'total' => $photoPages->count()]) }}">
+                        @foreach ($chunk->values() as $j => $photo)
+                            <figure @class([
+                                'relative overflow-hidden bg-sand-200',
+                                'arch row-span-2' => $j === 0,
+                                'col-span-2' => $j === 0 && $chunk->count() === 1,
+                                'rounded-[var(--radius-md)]' => $j > 0,
+                                'row-span-2' => $j === 1 && $chunk->count() === 2,
+                            ])>
+                                <img src="{{ $photo->url() }}" alt="{{ $photo->alt ?? $photo->caption }}" loading="lazy" class="absolute inset-0 size-full object-cover">
+                                @if ($j === 0 && $photo->caption)
+                                    <figcaption class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-night-900/70 to-transparent p-4 pt-10 font-display text-base italic text-sand-50">{{ $photo->caption }}</figcaption>
+                                @endif
+                            </figure>
+                        @endforeach
+                    </div>
+                @endforeach
+            </div>
+            @if ($photoPages->count() > 1)
+                <div class="mt-5 flex items-center justify-between gap-4">
+                    <button type="button" @click="go(page - 1)" :disabled="page === 0"
+                            class="grid size-10 place-items-center rounded-full border border-sand-300 transition hover:border-copper-500 disabled:pointer-events-none disabled:opacity-35" aria-label="{{ __('site.gallery.prev') }}">
+                        <x-icon name="chevron" class="size-5 rotate-180"/>
+                    </button>
+                    <div class="flex items-center gap-2">
+                        @foreach ($photoPages as $p => $chunk)
+                            <button type="button" @click="go({{ $p }})" class="h-2 rounded-full transition-all"
+                                    :class="page === {{ $p }} ? 'w-6 bg-copper-500' : 'w-2 bg-sand-300'"
+                                    aria-label="{{ __('site.gallery.page', ['n' => $p + 1, 'total' => $photoPages->count()]) }}" :aria-current="page === {{ $p }}"></button>
+                        @endforeach
+                    </div>
+                    <button type="button" @click="go(page + 1)" :disabled="page === pages - 1"
+                            class="grid size-10 place-items-center rounded-full border border-sand-300 transition hover:border-copper-500 disabled:pointer-events-none disabled:opacity-35" aria-label="{{ __('site.gallery.next') }}">
+                        <x-icon name="chevron" class="size-5"/>
+                    </button>
+                </div>
+            @endif
+        </div>
+
+        {{-- Tablet & desktop: the 7-frame mosaic, a full 4 × 3 grid with no holes:
+             [1 arch][2][3][4 tall] / [1][5 wide][4] / [6 wide][7 wide] --}}
+        <div class="mt-14 hidden grid-flow-dense auto-rows-[220px] grid-cols-4 gap-4 md:grid">
+            @foreach ($photos->take(7) as $i => $photo)
                 <figure @class([
                     'reveal group relative overflow-hidden bg-sand-200',
                     'arch row-span-2' => $i === 0,
                     'rounded-[var(--radius-md)]' => $i !== 0,
-                    'md:col-span-2' => $i === 3,
-                    'row-span-2' => $i === 4,
+                    'row-span-2' => $i === 3,
+                    'col-span-2' => in_array($i, [4, 5, 6], true),
                 ])>
                     <img src="{{ $photo->url() }}" alt="{{ $photo->alt ?? $photo->caption }}" loading="lazy" class="absolute inset-0 size-full object-cover transition duration-700 group-hover:scale-105">
                     @if ($photo->caption)
                         <figcaption class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-night-900/70 to-transparent p-4 pt-10 font-display text-lg italic text-sand-50 opacity-0 transition group-hover:opacity-100">{{ $photo->caption }}</figcaption>
                     @endif
                 </figure>
+            @endforeach
+        </div>
+    </div>
+</section>
+@endif
+
+{{-- 8½ · REVIEWS -------------------------------------------------------------------- --}}
+@if ($reviews->isNotEmpty())
+<section class="pb-24 md:pb-32">
+    <div class="container-hg">
+        <div class="flex flex-wrap items-end justify-between gap-6">
+            <x-section-head :eyebrow="__('site.reviews.eyebrow')" :title="__('site.reviews.home_title')">
+                <p class="mt-5 flex items-center gap-3 reveal">
+                    <x-stars :rating="$reviewSummary['average']" class="size-5"/>
+                    <span class="font-semibold">{{ number_format($reviewSummary['average'], 1) }}</span>
+                    <span class="text-ink-600">· {{ trans_choice('site.reviews.count', $reviewSummary['count'], ['count' => $reviewSummary['count']]) }}</span>
+                </p>
+            </x-section-head>
+            <a href="{{ lroute('reviews') }}" class="btn btn-secondary reveal">{{ __('site.reviews.read_all') }}</a>
+        </div>
+        <div class="mt-14 grid gap-5 md:grid-cols-3">
+            @foreach ($reviews as $review)
+                @include('partials.review-card', ['review' => $review])
             @endforeach
         </div>
     </div>

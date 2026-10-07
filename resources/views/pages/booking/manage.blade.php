@@ -38,6 +38,11 @@
             <div class="mt-10 grid gap-4 sm:grid-cols-2">
                 <a href="https://www.google.com/maps/dir/?api=1&destination={{ $lat }},{{ $lng }}" target="_blank" rel="noopener" class="panel flex items-center gap-4 p-5 hover:border-copper-500"><x-icon name="pin" class="size-6 text-copper-500"/> {{ __('booking.manage.directions') }}</a>
                 <a href="{{ lroute('booking.manage.receipt', ['booking' => $booking->reference, 'token' => $booking->manage_token]) }}" class="panel flex items-center gap-4 p-5 hover:border-copper-500"><x-icon name="download" class="size-6 text-copper-500"/> {{ __('booking.manage.receipt') }}</a>
+                @if (setting('reviews_enabled', true) && \App\Models\Review::bookingCanReview($booking))
+                    <a href="{{ lroute('reviews', ['ref' => $booking->reference, 'token' => $booking->manage_token]) }}#write" class="panel flex items-center gap-4 p-5 hover:border-copper-500 sm:col-span-2">
+                        <x-stars rating="5" class="size-5"/> {{ __('site.reviews.write_stay') }}
+                    </a>
+                @endif
             </div>
 
             @if ($booking->payments->isNotEmpty())

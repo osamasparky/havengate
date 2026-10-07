@@ -17,6 +17,8 @@
         'location' => __('site.nav.location'),
         'contact' => __('site.nav.contact'),
     ];
+    // Reviews live in the footer & "More" menu so the desktop header stays at six links.
+    $extraNav = setting('reviews_enabled', true) ? ['reviews' => __('site.nav.reviews')] : [];
     $whatsapp = preg_replace('/\D/', '', (string) setting('contact_whatsapp'));
     // App-style bottom tab bar (phones & tablets).
     $tabs = [
@@ -121,7 +123,7 @@
             <button type="button" class="grid size-10 place-items-center" @click="menu = false" aria-label="{{ __('site.nav.close') }}"><x-icon name="x" class="size-6"/></button>
         </div>
         <nav class="container-hg mt-4 flex flex-col gap-1 overflow-y-auto pb-32" style="max-height: calc(100dvh - 4rem)">
-            @foreach ($nav + ['booking.manage' => __('site.nav.manage')] as $route => $label)
+            @foreach ($nav + $extraNav + ['booking.manage' => __('site.nav.manage')] as $route => $label)
                 <a href="{{ lroute($route) }}" @class(['flex items-center justify-between border-b border-night-700 py-4 font-display text-3xl', 'text-copper-300' => request()->routeIs($route) || request()->routeIs(str_replace('.index', '.*', $route))])>
                     {{ $label }} <x-icon name="chevron" class="size-5 text-sand-200/40 rtl:-scale-x-100"/>
                 </a>
@@ -169,7 +171,7 @@
             <div>
                 <p class="eyebrow">{{ __('site.footer.explore') }}</p>
                 <ul class="mt-5 space-y-3 text-sand-200/80">
-                    @foreach ($nav as $route => $label)
+                    @foreach ($nav + $extraNav as $route => $label)
                         <li><a href="{{ lroute($route) }}" class="hover:text-copper-300">{{ $label }}</a></li>
                     @endforeach
                 </ul>

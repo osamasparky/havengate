@@ -10,6 +10,7 @@ use App\Models\Faq;
 use App\Models\Page;
 use App\Models\Photo;
 use App\Models\Promotion;
+use App\Models\Review;
 use Illuminate\Http\Response;
 
 class SiteController extends Controller
@@ -21,11 +22,16 @@ class SiteController extends Controller
             'stays' => Accommodation::active()->get(),
             'experiences' => Experience::active()->where('is_featured', true)->take(4)->get(),
             'facilities' => Facility::active()->take(8)->get(),
-            'photos' => Photo::whereNull('photoable_id')->where('is_featured', true)->orderBy('sort_order')->take(7)->get(),
+            'photos' => Photo::whereNull('photoable_id')->where('is_featured', true)->orderBy('sort_order')->take(12)->get(), // desktop shows 7, phones page through all
             'promotion' => Promotion::where('is_active', true)->where('show_on_site', true)
                 ->where(fn ($q) => $q->whereNull('bookable_until')->orWhereDate('bookable_until', '>=', today()))
                 ->latest()->first(),
             'faqs' => Faq::active()->take(6)->get(),
+            // Featured first, then the latest good ones.
+            'reviews' => setting('reviews_enabled', true)
+                ? Review::published()->with('accommodation')->reorder()->orderByDesc('is_featured')->orderByDesc('rating')->latest()->take(3)->get()
+                : collect(),
+            'reviewSummary' => Review::summary(),
         ]);
     }
 

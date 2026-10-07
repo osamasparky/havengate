@@ -10,12 +10,30 @@
     .num { text-align: {{ locale_dir() === 'rtl' ? 'left' : 'right' }}; }
     .muted { color: #8F877C; }
     .total td { font-size: 16px; font-weight: bold; border-bottom: 0; }
+    .badge { display: inline-block; padding: 3px 10px; border-radius: 10px; font-size: 11px; font-weight: bold; border: 1px solid; }
+    .b-success { color: #3F6B4E; background: #EAF1EC; border-color: #A9C4B2; }
+    .b-warning { color: #9A5B12; background: #FBF1E2; border-color: #E6C08D; }
+    .b-danger { color: #9B3B2A; background: #F8E9E5; border-color: #DDA597; }
+    .b-info { color: #2D5A7B; background: #E7EFF5; border-color: #A3BED2; }
+    .b-gray { color: #5E574E; background: #F1ECE4; border-color: #D5CABB; }
 </style></head>
 <body>
-@php $bu = $booking->units->first(); @endphp
+@php
+    $bu = $booking->units->first();
+    $badge = fn ($enum) => '<span class="badge b-'.$enum->getColor().'">'.e($enum->getLabel()).'</span>';
+@endphp
 <div class="head"><div class="brand">Heaven Gate Camp</div><div style="font-size:10px;letter-spacing:3px;">NUWEIBA · SOUTH SINAI</div></div>
 <table style="margin-top:20px;">
     <tr><td class="muted">{{ __('booking.reference') }}</td><td class="num"><strong>{{ $booking->reference }}</strong></td></tr>
+    <tr><td class="muted">{{ __('booking.pdf.status') }}</td><td class="num">{!! $badge($booking->status) !!}</td></tr>
+    <tr><td class="muted">{{ __('booking.pdf.payment_status') }}</td><td class="num">{!! $badge($booking->payment_status) !!}</td></tr>
+    @if ($booking->status === \App\Enums\BookingStatus::Pending && $booking->expires_at)
+        <tr><td class="muted">{{ __('booking.pdf.hold_until') }}</td><td class="num">{{ $booking->expires_at->format('Y-m-d H:i') }}</td></tr>
+    @endif
+    @if ($booking->status === \App\Enums\BookingStatus::Cancelled && $booking->cancelled_at)
+        <tr><td class="muted">{{ __('booking.pdf.cancelled_on') }}</td><td class="num">{{ $booking->cancelled_at->format('Y-m-d') }}</td></tr>
+    @endif
+    <tr><td class="muted">{{ __('booking.pdf.issued') }}</td><td class="num">{{ now()->format('Y-m-d H:i') }}</td></tr>
     <tr><td class="muted">{{ __('booking.first_name') }}</td><td class="num">{{ $booking->guest->full_name }}</td></tr>
     <tr><td class="muted">{{ __('mail.stay') }}</td><td class="num">{{ $bu?->accommodation?->name }}{{ $booking->roomCount() > 1 ? ' × '.trans_choice('booking.rooms_count', $booking->roomCount(), ['count' => $booking->roomCount()]) : '' }}</td></tr>
     <tr><td class="muted">{{ __('mail.dates') }}</td><td class="num">{{ $booking->check_in->format('Y-m-d') }} → {{ $booking->check_out->format('Y-m-d') }} ({{ $booking->nights }})</td></tr>
@@ -24,7 +42,7 @@
 <table style="margin-top:20px;">
     @php $rooms = $booking->roomCount(); $nightsTotal = collect($bu?->nightly_rates ?? [])->sum('rate') * $rooms; @endphp
     @foreach ($bu?->nightly_rates ?? [] as $n)
-        <tr><td>{{ $n['date'] }} {{ $n['label'] ? '· '.$n['label'] : '' }}{{ $rooms > 1 ? ' × '.$rooms : '' }}</td><td class="num">{{ number_format($n['rate'] * $rooms, 2) }}</td></tr>
+        <tr><td>{{ $n['date'] }} {{ $n['label'] ? '· '.__label($n['label']) : '' }}{{ $rooms > 1 ? ' × '.$rooms : '' }}</td><td class="num">{{ number_format($n['rate'] * $rooms, 2) }}</td></tr>
     @endforeach
     @if ((float) $booking->accommodation_total - $nightsTotal > 0.009)
         <tr><td>{{ __('booking.extra_guests') }} / {{ __('booking.pet_fee') }}</td><td class="num">{{ number_format((float) $booking->accommodation_total - $nightsTotal, 2) }}</td></tr>

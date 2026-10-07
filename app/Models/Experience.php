@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasReviews;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
@@ -9,7 +10,7 @@ use Spatie\Translatable\HasTranslations;
 
 class Experience extends Model
 {
-    use HasTranslations;
+    use HasReviews, HasTranslations;
 
     public array $translatable = ['name', 'summary', 'description', 'schedule'];
 
@@ -23,6 +24,11 @@ class Experience extends Model
             'is_featured' => 'boolean',
             'is_active' => 'boolean',
         ];
+    }
+
+    protected function reviewKey(): string
+    {
+        return 'experience_id';
     }
 
     public function getRouteKeyName(): string

@@ -7,6 +7,7 @@ use App\Http\Controllers\ExperienceController;
 use App\Http\Controllers\ManageBookingController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\SiteController;
 use App\Http\Controllers\StayController;
 use App\Livewire\BookingWizard;
@@ -67,6 +68,9 @@ Route::prefix('{locale}')
         Route::get('manage/{booking:reference}', [ManageBookingController::class, 'show'])->name('booking.manage.show');
         Route::post('manage/{booking:reference}/cancel', [ManageBookingController::class, 'cancel'])->middleware('throttle:5,1')->name('booking.manage.cancel');
         Route::get('manage/{booking:reference}/receipt', [ManageBookingController::class, 'receipt'])->name('booking.manage.receipt');
+
+        Route::get('reviews', [ReviewController::class, 'index'])->name('reviews');
+        Route::post('reviews', [ReviewController::class, 'store'])->middleware('throttle:5,10')->name('reviews.store');
 
         Route::get('p/{page:slug}', [PageController::class, 'show'])->name('page');
     });

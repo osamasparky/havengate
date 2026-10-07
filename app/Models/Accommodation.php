@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasReviews;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -12,7 +13,7 @@ use Spatie\Translatable\HasTranslations;
 
 class Accommodation extends Model
 {
-    use HasTranslations, SoftDeletes;
+    use HasReviews, HasTranslations, SoftDeletes;
 
     public array $translatable = ['name', 'tagline', 'description', 'highlights', 'bed_configuration', 'meta_title', 'meta_description'];
 
@@ -29,6 +30,11 @@ class Accommodation extends Model
             'is_active' => 'boolean',
             'is_featured' => 'boolean',
         ];
+    }
+
+    protected function reviewKey(): string
+    {
+        return 'accommodation_id';
     }
 
     public function getRouteKeyName(): string

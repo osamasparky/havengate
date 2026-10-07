@@ -12,6 +12,10 @@
                     <span aria-hidden="true">·</span>
                 @endif
                 <span>{{ (float) $experience->price > 0 ? money($experience->price).' '.__('site.'.$experience->pricing_unit) : __('site.free') }}</span>
+                @if ($experience->rating()['count'] > 0 && setting('reviews_enabled', true))
+                    <span aria-hidden="true">·</span>
+                    <x-rating-badge :rating="$experience->rating()" :dark="$dark" class="{{ $dark ? 'text-sand-50' : 'text-ink-900' }}"/>
+                @endif
             </div>
             <h3 class="t-h3 mt-2">{{ $experience->name }}</h3>
             <p class="mt-2 line-clamp-2 {{ $dark ? 'text-sand-200/75' : 'text-ink-600' }}">{{ $experience->summary }}</p>

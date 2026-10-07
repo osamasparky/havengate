@@ -9,6 +9,7 @@
         <div class="mt-8 grid items-center gap-12 lg:grid-cols-2">
             <div>
                 <h1 class="t-h1 reveal">{{ $experience->name }}</h1>
+                @include('partials.rating-link')
                 <p class="lede mt-6 reveal">{{ $experience->summary }}</p>
                 <dl class="mt-10 grid grid-cols-3 gap-6 border-y border-sand-200 py-6 reveal">
                     @if ($experience->durationLabel())
@@ -35,8 +36,10 @@
 <section class="py-20"><div class="container-hg prose-hg text-lg">{!! nl2br(e($experience->description)) !!}</div></section>
 @endif
 
+@include('partials.reviews-section')
+
 @if ($others->isNotEmpty())
-<section class="bg-sand-100 py-24 mt-20">
+<section class="bg-sand-100 py-24">
     <div class="container-hg">
         <x-section-head :title="__('site.experiences.others')"/>
         <div class="mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">

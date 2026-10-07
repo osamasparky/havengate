@@ -11,6 +11,7 @@
         <div class="mt-6 flex items-start justify-between gap-6">
             <div>
                 <h3 class="t-h3">{{ $stay->name }}</h3>
+                <x-rating-badge :rating="$stay->rating()" class="mt-1.5"/>
                 <p class="mt-1.5 text-ink-600">{{ $stay->tagline }}</p>
             </div>
             <p class="shrink-0 text-end">

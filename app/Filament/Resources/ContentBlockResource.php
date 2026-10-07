@@ -47,10 +47,17 @@ class ContentBlockResource extends Resource
             Forms\Components\Textarea::make('body')->rows(5)->columnSpanFull(),
             Forms\Components\TextInput::make('cta_label')->label(__('Button label')),
             Forms\Components\TextInput::make('cta_url')->label(__('Button link'))->helperText(__('Site path like /contact (language is added automatically) or a full URL.')),
-            Forms\Components\FileUpload::make('image')->image()->imageEditor()->directory('content')->columnSpanFull(),
+            Forms\Components\FileUpload::make('image')->image()->imageEditor()->directory('content')
+                ->label(fn (?ContentBlock $record) => $record?->key === 'home.story' ? __('Main image (large arch, right)') : __('Image'))
+                ->columnSpan(fn (?ContentBlock $record) => $record?->key === 'home.story' ? 1 : 'full'),
+            // The story section shows two arched frames side by side.
+            Forms\Components\FileUpload::make('image_2')->label(__('Second image (small arch, left)'))->image()->imageEditor()->directory('content')
+                ->visible(fn (?ContentBlock $record) => $record?->key === 'home.story'),
+            // Only the home hero plays a video.
             Forms\Components\FileUpload::make('video')->label(__('Background video'))->directory('content/video')
                 ->acceptedFileTypes(['video/mp4', 'video/webm'])->maxSize(40 * 1024)->columnSpanFull()
-                ->helperText(__('Home hero only. MP4/WebM, muted, 10–30 s loop, under 15 MB works best. The image is used as the poster and on slow connections.')),
+                ->visible(fn (?ContentBlock $record) => $record?->key === 'home.hero')
+                ->helperText(__('MP4/WebM, muted, 10–30 s loop, under 15 MB works best. The image is used as the poster and on slow connections.')),
             Forms\Components\Toggle::make('is_active')->default(true),
         ])->columns(2);
     }
