@@ -7,6 +7,7 @@
         'cancelled', 'expired', 'no_show' => 'border-rock-600/30 bg-rock-600/10 text-rock-600',
         default => 'border-sand-300 bg-sand-100 text-ink-600',
     };
+    $atProperty = $booking->payment_method === \App\Enums\PaymentMethod::AtProperty;
     $whatsapp = preg_replace('/\D/', '', (string) setting('contact_whatsapp'));
     $lat = config('heavengate.coordinates.lat'); $lng = config('heavengate.coordinates.lng');
 @endphp
@@ -15,13 +16,24 @@
 <section class="py-14 md:py-20">
     <div class="container-hg grid gap-10 lg:grid-cols-[1fr_380px] lg:gap-14">
         <div>
-            <span class="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-sm font-semibold {{ $statusColor }}">{{ $booking->status->getLabel() }} · {{ $booking->payment_status->getLabel() }}</span>
+            <span class="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-sm font-semibold {{ $statusColor }}">{{ $booking->statusLabel() }} ·{{ $booking->payment_status->getLabel() }}</span>
             <h1 class="t-h1 mt-6">{{ __('booking.manage.hello', ['name' => $booking->guest->first_name]) }}</h1>
             @if ($booking->status->value === 'confirmed')
                 <p class="lede mt-4">{{ __('mail.confirmed.body') }}</p>
             @endif
 
-            @if ($booking->status->value === 'pending')
+            @if ($atProperty && in_array($booking->status->value, ['pending', 'confirmed', 'checked_in'], true) && $booking->balanceDue() > 0)
+                <div class="panel mt-10 p-7">
+                    <h2 class="t-h3">{{ __('booking.at_property.title') }}</h2>
+                    <p class="mt-3 text-ink-600">
+                        {{ $booking->status->value === 'pending' ? __('booking.at_property.pending_body') : __('booking.at_property.body') }}
+                    </p>
+                    <p class="mt-4 font-semibold">{{ __('booking.at_property.due', ['amount' => money($booking->balanceDue())]) }}</p>
+                    @if ($whatsapp)
+                        <a href="https://wa.me/{{ $whatsapp }}?text={{ urlencode($booking->reference) }}" target="_blank" rel="noopener" class="btn btn-dark btn-sm mt-6"><x-icon name="whatsapp" class="size-4"/> {{ __('site.contact.whatsapp') }}</a>
+                    @endif
+                </div>
+            @elseif ($booking->status->value === 'pending')
                 <div class="panel mt-10 p-7">
                     <h2 class="t-h3">{{ __('booking.offline.instructions') }}</h2>
                     <p class="mt-3 text-ink-600">{{ setting('offline_payment_instructions') }}</p>

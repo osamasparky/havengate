@@ -25,8 +25,11 @@
 <div class="head"><div class="brand">Heaven Gate Camp</div><div style="font-size:10px;letter-spacing:3px;">NUWEIBA · SOUTH SINAI</div></div>
 <table style="margin-top:20px;">
     <tr><td class="muted">{{ __('booking.reference') }}</td><td class="num"><strong>{{ $booking->reference }}</strong></td></tr>
-    <tr><td class="muted">{{ __('booking.pdf.status') }}</td><td class="num">{!! $badge($booking->status) !!}</td></tr>
+    <tr><td class="muted">{{ __('booking.pdf.status') }}</td><td class="num"><span class="badge b-{{ $booking->status->getColor() }}">{{ $booking->statusLabel() }}</span></td></tr>
     <tr><td class="muted">{{ __('booking.pdf.payment_status') }}</td><td class="num">{!! $badge($booking->payment_status) !!}</td></tr>
+    @if ($booking->payment_method)
+        <tr><td class="muted">{{ __('booking.pdf.payment_method') }}</td><td class="num">{{ $booking->payment_method->getLabel() }}</td></tr>
+    @endif
     @if ($booking->status === \App\Enums\BookingStatus::Pending && $booking->expires_at)
         <tr><td class="muted">{{ __('booking.pdf.hold_until') }}</td><td class="num">{{ $booking->expires_at->format('Y-m-d H:i') }}</td></tr>
     @endif

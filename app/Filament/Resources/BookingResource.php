@@ -76,6 +76,7 @@ class BookingResource extends Resource
                 Infolists\Components\TextEntry::make('reference')->weight('bold')->size('lg')->copyable(),
                 Infolists\Components\TextEntry::make('status')->badge(),
                 Infolists\Components\TextEntry::make('payment_status')->badge(),
+                Infolists\Components\TextEntry::make('payment_method')->label(__('Payment method'))->badge()->placeholder(__('—')),
                 Infolists\Components\TextEntry::make('source')->badge()->color('gray')->formatStateUsing(fn ($state) => static::sourceLabel($state)),
             ])->columns(4),
             Infolists\Components\Grid::make(3)->schema([
@@ -130,6 +131,7 @@ class BookingResource extends Resource
                 Tables\Columns\TextColumn::make('adults')->label(__('Guests'))->formatStateUsing(fn (Booking $r) => $r->adults.($r->children ? '+'.$r->children : '')),
                 Tables\Columns\TextColumn::make('total')->money(config('heavengate.currency'))->sortable(),
                 Tables\Columns\TextColumn::make('payment_status')->badge(),
+                Tables\Columns\TextColumn::make('payment_method')->label(__('Payment method'))->badge()->placeholder(__('—'))->toggleable(),
                 Tables\Columns\TextColumn::make('status')->badge(),
                 Tables\Columns\TextColumn::make('source')->badge()->color('gray')->formatStateUsing(fn ($state) => static::sourceLabel($state))->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('created_at')->since()->label(__('Booked'))->sortable()->toggleable(),
@@ -137,6 +139,7 @@ class BookingResource extends Resource
             ->filters([
                 Tables\Filters\SelectFilter::make('status')->options(BookingStatus::class)->multiple(),
                 Tables\Filters\SelectFilter::make('payment_status')->options(BookingPaymentStatus::class),
+                Tables\Filters\SelectFilter::make('payment_method')->label(__('Payment method'))->options(\App\Enums\PaymentMethod::class),
                 Tables\Filters\SelectFilter::make('accommodation')->label(__('Stay'))
                     ->options(fn () => Accommodation::all()->mapWithKeys(fn ($a) => [$a->id => $a->name]))
                     ->query(fn (Builder $query, array $data) => $data['value'] ? $query->whereHas('units', fn ($u) => $u->where('accommodation_id', $data['value'])) : $query),

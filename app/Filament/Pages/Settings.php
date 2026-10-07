@@ -31,7 +31,10 @@ class Settings extends Page implements HasForms
     private const TRANSLATABLE = ['address', 'offline_payment_instructions'];
 
     /** Values for keys added after the initial seed (match the setting() fallbacks in code). */
-    public const DEFAULTS = ['reviews_enabled' => true, 'reviews_require_booking' => true, 'reviews_auto_approve' => false];
+    public const DEFAULTS = [
+        'reviews_enabled' => true, 'reviews_require_booking' => true, 'reviews_auto_approve' => false,
+        'pay_at_property_enabled' => true, 'pay_at_property_auto_confirm' => true,
+    ];
 
     public static function canAccess(): bool
     {
@@ -83,6 +86,11 @@ class Settings extends Page implements HasForms
                 Forms\Components\Tabs\Tab::make(__('Payments & taxes'))->icon('heroicon-o-banknotes')->schema([
                     Forms\Components\Toggle::make('online_payment_enabled')->label(__('Online payment (EasyKash)')),
                     Forms\Components\Toggle::make('offline_payment_enabled')->label(__('Bank transfer / InstaPay')),
+                    Forms\Components\Toggle::make('pay_at_property_enabled')->label(__('Pay at property (on arrival)'))->live()
+                        ->helperText(__('Guests book without paying online and pay the full amount at the camp.')),
+                    Forms\Components\Toggle::make('pay_at_property_auto_confirm')->label(__('Confirm pay-at-property bookings automatically'))
+                        ->helperText(__('Off = the booking waits in Reservations until staff confirm it ("Confirm without payment") or cancel it. The unit stays held meanwhile.'))
+                        ->visible(fn (Forms\Get $get) => (bool) $get('pay_at_property_enabled')),
                     Forms\Components\TextInput::make('deposit_percent')->numeric()->minValue(1)->maxValue(100)->suffix('%')->helperText(__('100 = full payment online; 30 = 30% deposit, balance at the camp.')),
                     Forms\Components\TextInput::make('offline_hold_hours')->numeric()->suffix(__('h')),
                     Forms\Components\TextInput::make('service_charge_percent')->numeric()->suffix('%'),

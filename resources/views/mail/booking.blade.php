@@ -13,6 +13,9 @@
         <tr><td style="padding:12px 0;color:#8F877C;">{{ __('booking.reference') }}</td><td style="padding:12px 0;text-align:end;font-family:monospace;font-size:16px;font-weight:bold;" dir="ltr">{{ $booking->reference }}</td></tr>
         <tr><td style="padding:12px 0;color:#8F877C;border-top:1px solid #E8D9C2;">{{ __('mail.stay') }}</td><td style="padding:12px 0;text-align:end;border-top:1px solid #E8D9C2;">{{ $bu?->accommodation?->name }}{{ $booking->roomCount() > 1 ? ' × '.trans_choice('booking.rooms_count', $booking->roomCount(), ['count' => $booking->roomCount()]) : '' }}</td></tr>
         <tr><td style="padding:12px 0;color:#8F877C;border-top:1px solid #E8D9C2;">{{ __('mail.dates') }}</td><td style="padding:12px 0;text-align:end;border-top:1px solid #E8D9C2;">{{ $booking->check_in->translatedFormat('D j M Y') }} → {{ $booking->check_out->translatedFormat('D j M Y') }}<br><span style="color:#8F877C;">{{ setting('check_in_time') }} / {{ setting('check_out_time') }}</span></td></tr>
+        @if ($booking->payment_method)
+            <tr><td style="padding:12px 0;color:#8F877C;border-top:1px solid #E8D9C2;">{{ __('booking.pdf.payment_method') }}</td><td style="padding:12px 0;text-align:end;border-top:1px solid #E8D9C2;">{{ $booking->payment_method->getLabel() }}</td></tr>
+        @endif
         <tr><td style="padding:12px 0;color:#8F877C;border-top:1px solid #E8D9C2;">{{ __('mail.guests') }}</td><td style="padding:12px 0;text-align:end;border-top:1px solid #E8D9C2;">{{ trans_choice('site.guests', $booking->guestCount(), ['count' => $booking->guestCount()]) }}</td></tr>
         @foreach ($booking->extras as $x)
             <tr><td style="padding:12px 0;color:#8F877C;border-top:1px solid #E8D9C2;">{{ $x->name }}</td><td style="padding:12px 0;text-align:end;border-top:1px solid #E8D9C2;">× {{ $x->quantity }}</td></tr>
@@ -21,7 +24,7 @@
         @if ((float) $booking->amount_paid > 0)
             <tr><td style="padding:6px 0;color:#4E7D5B;">{{ __('mail.paid') }}</td><td style="padding:6px 0;text-align:end;color:#4E7D5B;">{{ money($booking->amount_paid) }}</td></tr>
         @endif
-        @if ($booking->balanceDue() > 0 && $kind === 'confirmed')
+        @if ($booking->balanceDue() > 0 && in_array($kind, ['confirmed', 'requested'], true))
             <tr><td style="padding:6px 0;">{{ __('mail.balance') }}</td><td style="padding:6px 0;text-align:end;font-weight:bold;">{{ money($booking->balanceDue()) }}</td></tr>
         @endif
     </table>

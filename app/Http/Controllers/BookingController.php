@@ -30,6 +30,7 @@ class BookingController extends Controller
             'booking' => $booking,
             'onlineEnabled' => $payments->onlineEnabled(),
             'offlineEnabled' => $payments->offlineEnabled(),
+            'atPropertyEnabled' => $payments->atPropertyEnabled(),
         ]);
     }
 
@@ -59,6 +60,18 @@ class BookingController extends Controller
 
         return redirect()->route('booking.manage.show', ['booking' => $booking->reference, 'token' => $booking->manage_token])
             ->with('status', __('booking.offline.received'));
+    }
+
+    public function payAtProperty(Request $request, string $locale, Booking $booking, BookingService $bookings, PaymentManager $payments)
+    {
+        $this->authorizeToken($request, $booking);
+        $request->validate(['accept_terms' => 'accepted']);
+        abort_unless($payments->atPropertyEnabled() && $booking->status === BookingStatus::Pending && ! $booking->isHoldExpired(), 422);
+
+        $bookings->reserveAtProperty($booking);
+
+        return redirect()->route('booking.manage.show', ['booking' => $booking->reference, 'token' => $booking->manage_token])
+            ->with('status', __($booking->status === BookingStatus::Confirmed ? 'booking.at_property.confirmed' : 'booking.at_property.requested'));
     }
 
     /** Polled by the return page while waiting for the gateway callback. */

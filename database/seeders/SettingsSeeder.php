@@ -43,6 +43,8 @@ class SettingsSeeder extends Seeder
             'online_payment_enabled' => true,
             'offline_payment_enabled' => true,
             'offline_hold_hours' => 24,
+            'pay_at_property_enabled' => true,
+            'pay_at_property_auto_confirm' => true, // false = staff confirm each one
             'offline_payment_instructions' => [
                 'en' => "Transfer the amount due via InstaPay or bank transfer and send the receipt on WhatsApp with your booking reference. Your stay is held for 24 hours.",
                 'ar' => "حوّل المبلغ المستحق عبر إنستاباي أو تحويل بنكي وأرسل الإيصال على واتساب مع رقم الحجز. يتم الاحتفاظ بحجزك لمدة 24 ساعة.",

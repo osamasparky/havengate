@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Enums\BookingPaymentStatus;
 use App\Enums\BookingStatus;
+use App\Enums\PaymentMethod;
 use App\Enums\PaymentProvider;
 use App\Enums\PaymentStatus;
 use App\Exceptions\BookingException;
@@ -245,10 +246,33 @@ class BookingService
     public function awaitOfflinePayment(Booking $booking): void
     {
         $hours = (int) setting('offline_hold_hours', 24);
-        $booking->update(['expires_at' => now()->addHours($hours)]);
+        $booking->update(['expires_at' => now()->addHours($hours), 'payment_method' => PaymentMethod::BankTransfer]);
         $booking->log('awaiting_offline_payment', "Hold extended {$hours}h");
         $this->sendGuestMail($booking, new BookingReceivedMail($booking));
         $this->notifyAdmin($booking, 'offline');
+    }
+
+    /**
+     * Guest chose to pay at the camp on arrival. Confirmed straight away, or, when
+     * Settings → Payments says staff approve these, held (without expiry) until a
+     * staff member confirms or cancels it.
+     */
+    public function reserveAtProperty(Booking $booking): Booking
+    {
+        $booking->update(['payment_method' => PaymentMethod::AtProperty]);
+
+        if (setting('pay_at_property_auto_confirm', true)) {
+            $booking->log('pay_at_property', 'Guest pays the full amount on arrival');
+
+            return $this->confirm($booking);
+        }
+
+        $booking->update(['expires_at' => null]); // keeps the unit held until staff decide
+        $booking->log('awaiting_approval', 'Pay at property — waiting for staff to confirm');
+        $this->sendGuestMail($booking, new BookingReceivedMail($booking, 'requested'));
+        $this->notifyAdmin($booking, 'approval');
+
+        return $booking;
     }
 
     /** Refund due if cancelled now, per the booking policy settings. */

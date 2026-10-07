@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\BookingPaymentStatus;
 use App\Enums\BookingStatus;
+use App\Enums\PaymentMethod;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -22,6 +23,7 @@ class Booking extends Model
         return [
             'status' => BookingStatus::class,
             'payment_status' => BookingPaymentStatus::class,
+            'payment_method' => PaymentMethod::class,
             'check_in' => 'date',
             'check_out' => 'date',
             'accommodation_total' => 'decimal:2',
@@ -103,6 +105,14 @@ class Booking extends Model
     public function scopeDepartingOn(Builder $q, $date): Builder
     {
         return $q->whereDate('check_out', $date)->whereIn('status', [BookingStatus::CheckedIn, BookingStatus::Confirmed]);
+    }
+
+    /** Status for guests: a pay-at-property request isn't "awaiting payment", it's awaiting staff confirmation. */
+    public function statusLabel(): string
+    {
+        return $this->status === BookingStatus::Pending && $this->payment_method === PaymentMethod::AtProperty
+            ? __('booking.at_property.awaiting')
+            : $this->status->getLabel();
     }
 
     public function balanceDue(): float

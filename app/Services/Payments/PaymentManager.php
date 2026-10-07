@@ -3,6 +3,7 @@
 namespace App\Services\Payments;
 
 use App\Enums\BookingStatus;
+use App\Enums\PaymentMethod;
 use App\Enums\PaymentProvider;
 use App\Enums\PaymentStatus;
 use App\Exceptions\BookingException;
@@ -29,6 +30,11 @@ class PaymentManager
         return (bool) setting('offline_payment_enabled', true);
     }
 
+    public function atPropertyEnabled(): bool
+    {
+        return (bool) setting('pay_at_property_enabled', true);
+    }
+
     /** Create a payment row for the amount due now and get the gateway URL. */
     public function startOnline(Booking $booking): string
     {
@@ -49,7 +55,7 @@ class PaymentManager
         ]);
 
         // Give the guest a little more time while on the gateway.
-        $booking->update(['expires_at' => now()->addMinutes(max(15, (int) config('heavengate.hold_minutes')))]);
+        $booking->update(['expires_at' => now()->addMinutes(max(15, (int) config('heavengate.hold_minutes'))), 'payment_method' => PaymentMethod::Online]);
         $booking->log('payment_started', 'EasyKash '.money($amount), ['payment' => $payment->reference]);
 
         return $this->easykash->initiate($booking, $payment);

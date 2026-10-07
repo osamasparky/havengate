@@ -96,6 +96,13 @@ return [
         'offline_desc' => 'Reserve now and transfer within 24 hours. We confirm when we receive your receipt.',
         'offline_btn' => 'Reserve & pay by transfer',
         'expired' => 'Your hold has expired. Please search again.',
+        'property' => 'Pay at the camp',
+        'property_chip' => 'Cash · Card',
+        'property_desc' => 'Book now, pay nothing online. Pay the full :amount at the camp on arrival. Your stay is confirmed straight away.',
+        'property_desc_approval' => 'Book now, pay nothing online. Pay the full :amount at the camp on arrival. We confirm your request within a few hours.',
+        'property_btn' => 'Confirm booking · pay on arrival',
+        'property_btn_approval' => 'Request booking · pay on arrival',
+        'none' => 'Online booking isn’t available right now. Please contact us on WhatsApp to reserve.',
     ],
 
     'return' => [
@@ -197,5 +204,20 @@ return [
         'hold_until' => 'Held until',
         'cancelled_on' => 'Cancelled on',
         'issued' => 'Issued',
+        'payment_method' => 'Payment method',
+    ],
+    'method' => [
+        'online' => 'Paid online',
+        'bank_transfer' => 'Bank transfer / InstaPay',
+        'at_property' => 'Pay at property',
+    ],
+    'at_property' => [
+        'title' => 'Pay at the camp',
+        'body' => 'Nothing to pay online — settle the balance at reception when you arrive, in cash or by card.',
+        'pending_body' => 'We’ve received your request and will confirm it shortly. You’ll pay at reception when you arrive, in cash or by card.',
+        'due' => 'To pay on arrival: :amount',
+        'awaiting' => 'Awaiting confirmation',
+        'confirmed' => 'Your stay is confirmed. Pay at the camp when you arrive.',
+        'requested' => 'Request received — we’ll confirm your stay shortly. You’ll pay on arrival.',
     ],
 ];

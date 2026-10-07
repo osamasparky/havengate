@@ -24,4 +24,9 @@ return [
     'guests' => 'Guests',
     'paid' => 'Paid',
     'balance' => 'Balance due at the camp',
+    'requested' => [
+        'subject' => 'Booking request received · :ref',
+        'title' => 'We’ve got your request.',
+        'body' => 'You chose to pay at the camp on arrival. We’ll confirm your stay shortly by email — the details are below.',
+    ],
 ];

@@ -59,6 +59,7 @@ Route::prefix('{locale}')
         Route::get('booking/{booking:reference}/checkout', [BookingController::class, 'checkout'])->name('booking.checkout');
         Route::post('booking/{booking:reference}/pay/online', [BookingController::class, 'payOnline'])->middleware('throttle:10,1')->name('booking.pay.online');
         Route::post('booking/{booking:reference}/pay/offline', [BookingController::class, 'payOffline'])->middleware('throttle:10,1')->name('booking.pay.offline');
+        Route::post('booking/{booking:reference}/pay/at-property', [BookingController::class, 'payAtProperty'])->middleware('throttle:10,1')->name('booking.pay.at_property');
         Route::get('booking/{booking:reference}/status', [BookingController::class, 'status'])->name('booking.status');
         Route::get('payments/easykash/return/{payment:reference}', [PaymentController::class, 'easykashReturn'])->name('payments.easykash.return');
 
